@@ -62,7 +62,7 @@ app.get("/api/news", async (req, res) => {
   }
 });
 // Route 2: Scrape full content from a specific news URL
-app.get("/api/scrape", async (req, res) => {
+app.get("/api/newScrape", async (req, res) => {
   const { url } = req.query;
 
   if (!url) {
