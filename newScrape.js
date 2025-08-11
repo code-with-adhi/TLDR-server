@@ -15,10 +15,16 @@ const scrapeArticle = async (url) => {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
     // Wait for the main content to load
-    await page.waitForSelector("body", { timeout: 60000 });
+    // await page.waitForSelector("body", { timeout: 60000 });
+    await page.waitForSelector("article, .story-content, .article-body", {
+      timeout: 60000,
+    });
 
     // Get the full HTML content of the page
-    const pageContent = await page.content();
+    // const pageContent = await page.content();
+    const pageContent = await page.evaluate(
+      () => document.documentElement.outerHTML
+    );
 
     // Use JSDOM to create a DOM document from the HTML
     const dom = new JSDOM(pageContent, { url });
@@ -36,7 +42,15 @@ const scrapeArticle = async (url) => {
     } else {
       // Fallback if Readability fails
       console.error(`Readability failed to parse article at ${url}`);
-      return { title: "", content: "" };
+      const fallbackContent = await page.evaluate(() => {
+        return (
+          document.querySelector("article")?.innerText ||
+          document.querySelector(".story-content")?.innerText ||
+          document.querySelector(".article-body")?.innerText ||
+          ""
+        );
+      });
+      return { title: await page.title(), content: fallbackContent };
     }
   } catch (error) {
     console.error(`Scraping error on ${url}:`, error.message);
