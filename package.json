@@ -1,19 +1,21 @@
 {
-  "name": "server",
+  "name": "tldr-news-server",
   "version": "1.0.0",
-  "type": "module",
+  "description": "Backend server for the TLDR News application.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.11.0",
+    "@mozilla/readability": "^0.5.0",
+    "@sparticuz/chromium": "^123.0.0",
     "axios": "^1.11.0",
-    "cheerio": "^1.1.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
+    "cheerio": "^1.0.0-rc.12",
+    "express": "^4.19.2",
+    "jsdom": "^24.0.0",
     "node-fetch": "^3.3.2",
-    "puppeteer": "^24.15.0",
-    "@google/generative-ai": "^0.1.0"
+    "puppeteer-core": "^22.10.0"
   }
 }
