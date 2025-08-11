@@ -15,7 +15,7 @@ const scrapeArticle = async (url) => {
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
     // Wait for the main content to load
-    await page.waitForSelector("body", { timeout: 10000 });
+    await page.waitForSelector("body", { timeout: 60000 });
 
     // Get the full HTML content of the page
     const pageContent = await page.content();
