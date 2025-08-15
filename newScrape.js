@@ -52,7 +52,7 @@ const scrapeArticle = async (url) => {
     if (article) {
       return {
         title: article.title,
-        content: article.textContent,
+        content: article.content,
       };
     } else {
       console.error(`Readability failed to parse article at ${url}`);
