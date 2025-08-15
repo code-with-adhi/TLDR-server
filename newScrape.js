@@ -31,18 +31,11 @@ const scrapeArticle = async (url) => {
       () => document.documentElement.outerHTML
     );
 
-    // Clean the HTML before parsing
+    // Clean ONLY scripts and styles before parsing
     pageContent = pageContent.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
-    // ✅ TYPO FIX: Changed page.Content to pageContent
     pageContent = pageContent.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
-    pageContent = pageContent.replace(/<img[^>]*>/gi, "");
-    pageContent = pageContent.replace(/<figure[^>]*>[\s\S]*?<\/figure>/gi, "");
-    pageContent = pageContent.replace(
-      /<picture[^>]*>[\s\S]*?<\/picture>/gi,
-      ""
-    );
 
-    // Use JSDOM with the CLEANED HTML
+    // Use JSDOM with the partially cleaned HTML
     const dom = new JSDOM(pageContent, { url });
     const reader = new Readability(dom.window.document);
     const article = reader.parse();
@@ -50,12 +43,22 @@ const scrapeArticle = async (url) => {
     if (article && article.content) {
       let finalContent = article.content;
 
-      // Final cleanup to remove specific unwanted phrases
+      // ✅ NEW: Clean images and unwanted phrases from the FINAL content
+      // This is more effective because Readability has already removed many containers.
+      finalContent = finalContent.replace(/<img[^>]*>/gi, "");
+      finalContent = finalContent.replace(
+        /<figure[^>]*>[\s\S]*?<\/figure>/gi,
+        ""
+      );
+      finalContent = finalContent.replace(
+        /<picture[^>]*>[\s\S]*?<\/picture>/gi,
+        ""
+      );
+
       const unwantedPhrases = [
         /story continues? below this ad/gi,
         /continue reading after the advertisement/gi,
         /story continues below advertisement/gi,
-        // Add more phrases here as you find them
       ];
 
       unwantedPhrases.forEach((phrase) => {
