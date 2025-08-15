@@ -33,7 +33,8 @@ const scrapeArticle = async (url) => {
 
     // Clean the HTML before parsing
     pageContent = pageContent.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
-    pageContent = page.Content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+    // ✅ TYPO FIX: Changed page.Content to pageContent
+    pageContent = pageContent.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
     pageContent = pageContent.replace(/<img[^>]*>/gi, "");
     pageContent = pageContent.replace(/<figure[^>]*>[\s\S]*?<\/figure>/gi, "");
     pageContent = pageContent.replace(
@@ -49,7 +50,7 @@ const scrapeArticle = async (url) => {
     if (article && article.content) {
       let finalContent = article.content;
 
-      // ✅ NEW: Final cleanup to remove specific unwanted phrases
+      // Final cleanup to remove specific unwanted phrases
       const unwantedPhrases = [
         /story continues? below this ad/gi,
         /continue reading after the advertisement/gi,
@@ -63,7 +64,7 @@ const scrapeArticle = async (url) => {
 
       return {
         title: article.title,
-        content: finalContent, // <-- Return the newly cleaned content
+        content: finalContent,
       };
     } else {
       console.error(`Readability failed to parse article at ${url}`);
