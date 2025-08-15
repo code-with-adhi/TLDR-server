@@ -17,42 +17,40 @@ const scrapeArticle = async (url) => {
     );
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-    // ✅ NEW RESILIENT LOGIC
     try {
-      // We'll TRY to wait for a common selector, but with a shorter timeout.
       await page.waitForSelector("article, .story-content, .article-body", {
-        timeout: 15000, // Wait a max of 15 seconds
+        timeout: 15000,
       });
     } catch (error) {
-      // If the selector is not found, we'll log a warning but continue instead of crashing.
       console.warn(
-        `Warning: Main article selector not found on ${url}. The page might be protected or have an unusual structure. Proceeding anyway.`
+        `Warning: Main article selector not found on ${url}. Proceeding anyway.`
       );
     }
 
-    // Get the full HTML content of the page regardless of the selector wait.
-    const pageContent = await page.evaluate(
+    let pageContent = await page.evaluate(
       () => document.documentElement.outerHTML
     );
 
-    // Use JSDOM and Readability to parse the document
+    // ✅ NEW: Clean the HTML by removing all style and script tags.
+    // This prevents JSDOM from crashing on unparsable CSS.
+    pageContent = pageContent.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+    pageContent = pageContent.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+
+    // Use JSDOM with the CLEANED HTML
     const dom = new JSDOM(pageContent, { url });
     const reader = new Readability(dom.window.document);
     const article = reader.parse();
 
     if (article && article.content) {
-      // Return the sanitized HTML content from Readability
       return {
         title: article.title,
         content: article.content,
       };
     } else {
-      // Fallback if Readability fails
       console.error(`Readability failed to parse article at ${url}`);
       return {
         title: "Content not found",
-        content:
-          "<p>Could not automatically extract the article content. The website may be using a format that is not supported.</p>",
+        content: "<p>Could not automatically extract the article content.</p>",
       };
     }
   } catch (error) {
