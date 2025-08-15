@@ -1,24 +1,37 @@
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 
 const scrapeArticle = async (url) => {
   let browser = null;
   try {
-    // ✅ Added launch arguments for production environments like Render
     browser = await puppeteer.launch({
       headless: true,
+      executablePath: "/usr/bin/google-chrome",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
-        "--single-process",
-        "--no-zygote",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
       ],
-      // This helps in some environments, but can be removed if not needed.
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     });
 
     const page = await browser.newPage();
+
+    // Optimization to block unnecessary resources
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      if (
+        req.resourceType() === "image" ||
+        req.resourceType() === "stylesheet" ||
+        req.resourceType() === "font"
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     );
@@ -55,10 +68,9 @@ const scrapeArticle = async (url) => {
     }
   } catch (error) {
     console.error(`Scraping error on ${url}:`, error.message);
-    // Return a more informative error object
     return {
-      title: "Error",
-      content: `Failed to scrape the article. ${error.message}`,
+      title: "Scraping Failed",
+      content: `Could not retrieve the article. The server encountered an error: ${error.message}`,
     };
   } finally {
     if (browser) {
