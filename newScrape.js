@@ -31,10 +31,15 @@ const scrapeArticle = async (url) => {
       () => document.documentElement.outerHTML
     );
 
-    // ✅ NEW: Clean the HTML by removing all style and script tags.
-    // This prevents JSDOM from crashing on unparsable CSS.
+    // Clean the HTML before parsing
     pageContent = pageContent.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
-    pageContent = pageContent.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+    pageContent = page.Content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
+    pageContent = pageContent.replace(/<img[^>]*>/gi, "");
+    pageContent = pageContent.replace(/<figure[^>]*>[\s\S]*?<\/figure>/gi, "");
+    pageContent = pageContent.replace(
+      /<picture[^>]*>[\s\S]*?<\/picture>/gi,
+      ""
+    );
 
     // Use JSDOM with the CLEANED HTML
     const dom = new JSDOM(pageContent, { url });
@@ -42,9 +47,23 @@ const scrapeArticle = async (url) => {
     const article = reader.parse();
 
     if (article && article.content) {
+      let finalContent = article.content;
+
+      // ✅ NEW: Final cleanup to remove specific unwanted phrases
+      const unwantedPhrases = [
+        /story continues? below this ad/gi,
+        /continue reading after the advertisement/gi,
+        /story continues below advertisement/gi,
+        // Add more phrases here as you find them
+      ];
+
+      unwantedPhrases.forEach((phrase) => {
+        finalContent = finalContent.replace(phrase, "");
+      });
+
       return {
         title: article.title,
-        content: article.content,
+        content: finalContent, // <-- Return the newly cleaned content
       };
     } else {
       console.error(`Readability failed to parse article at ${url}`);
