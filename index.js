@@ -11,9 +11,13 @@ const app = express();
 const PORT = 5000;
 
 // ✅ Define the allowed origins for CORS
+// in server/index.js
+
+// ✅ Add "http://localhost:3000" to this list
 const allowedOrigins = [
-  "http://localhost:5173", // For local development
-  process.env.CLIENT_URL, // For your deployed Vercel frontend
+  "http://localhost:5173", // Your previous port, can be kept or removed
+  "http://localhost:3000", // The port from your error message
+  process.env.CLIENT_URL, // This is for your deployed Vercel URL
 ];
 
 app.use(
